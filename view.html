@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Koyfin Viewer</title>
+    <style>
+      body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+      .wrap { padding: 16px; max-width: 1100px; }
+      .frame { width: 100%; aspect-ratio: 600 / 420; border: 0; }
+      .muted { color: #555; font-size: 14px; }
+      a { word-break: break-all; }
+      code { background: #f2f2f2; padding: 2px 6px; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1 id="title">Koyfin</h1>
+      <p class="muted" id="subtitle"></p>
+
+      <iframe id="frame" class="frame" loading="lazy" frameborder="0"></iframe>
+
+      <p class="muted" id="fallback" style="display:none;">
+        If the embed doesn’t load, open directly:
+        <a id="directLink" target="_blank" rel="noreferrer">Koyfin link</a>
+      </p>
+
+      <p class="muted">
+        Tip: this page expects <code>?id=&lt;KOYFIN_ID&gt;</code> and (optionally) <code>&amp;label=&lt;NAME&gt;</code>.
+      </p>
+    </div>
+
+    <script>
+      function getParam(name) {
+        return new URLSearchParams(window.location.search).get(name);
+      }
+
+      function setChart(id, label) {
+        if (!id) {
+          document.getElementById("subtitle").textContent =
+            "Missing id. Use a URL like: view.html?id=d66ff7a910&label=Tesla";
+          return;
+        }
+
+        const safe = id.trim();
+        if (!/^[a-zA-Z0-9_-]+$/.test(safe)) {
+          document.body.innerHTML = "<p>Invalid chart id.</p>";
+          return;
+        }
+
+        const url = `https://app.koyfin.com/share/${safe}/simple`;
+
+        document.getElementById("frame").src = url;
+
+        const title = label ? `Koyfin: ${label}` : `Koyfin: ${safe}`;
+        document.title = title;
+        document.getElementById("title").textContent = label ? label : "Koyfin";
+
+        const subtitle = document.getElementById("subtitle");
+        subtitle.textContent = url;
+
+        const direct = document.getElementById("directLink");
+        direct.href = url;
+        direct.textContent = url;
+
+        document.getElementById("fallback").style.display = "block";
+      }
+
+      const id = getParam("id");
+      const label = getParam("label"); // optional
+      setChart(id, label);
+    </script>
+  </body>
+</html>
