@@ -3,72 +3,64 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Koyfin Viewer</title>
+    <title>Koyfin</title>
     <style>
       body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-      .wrap { padding: 16px; max-width: 1100px; }
-      .frame { width: 100%; aspect-ratio: 600 / 420; border: 0; }
-      .muted { color: #555; font-size: 14px; }
-      a { word-break: break-all; }
-      code { background: #f2f2f2; padding: 2px 6px; border-radius: 6px; }
+      .topbar {
+        position: fixed;
+        top: 8px;
+        right: 12px;
+        z-index: 10;
+        font-size: 13px;
+        background: rgba(255,255,255,0.9);
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 10px;
+        padding: 6px 10px;
+        backdrop-filter: blur(6px);
+      }
+      .topbar a { color: inherit; text-decoration: none; }
+      .topbar a:hover { text-decoration: underline; }
+
+      iframe {
+        width: 100vw;
+        height: 100vh;
+        border: 0;
+        display: block;
+      }
+
+      .error {
+        padding: 16px;
+        font-size: 14px;
+      }
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <h1 id="title">Koyfin</h1>
-      <p class="muted" id="subtitle"></p>
-
-      <iframe id="frame" class="frame" loading="lazy" frameborder="0"></iframe>
-
-      <p class="muted" id="fallback" style="display:none;">
-        If the embed doesn’t load, open directly:
-        <a id="directLink" target="_blank" rel="noreferrer">Koyfin link</a>
-      </p>
-
-      <p class="muted">
-        Tip: this page expects <code>?id=&lt;KOYFIN_ID&gt;</code> and (optionally) <code>&amp;label=&lt;NAME&gt;</code>.
-      </p>
+    <div class="topbar">
+      <a id="source" href="#" target="_blank" rel="noreferrer">Source</a>
     </div>
 
+    <iframe id="frame" loading="lazy" frameborder="0"></iframe>
+
     <script>
-      function getParam(name) {
-        return new URLSearchParams(window.location.search).get(name);
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      const label = params.get("label");
+
+      function validId(x) {
+        return x && /^[a-zA-Z0-9_-]+$/.test(x);
       }
 
-      function setChart(id, label) {
-        if (!id) {
-          document.getElementById("subtitle").textContent =
-            "Missing id. Use a URL like: view.html?id=d66ff7a910&label=Tesla";
-          return;
-        }
+      if (!validId(id)) {
+        document.body.innerHTML = "<div class='error'>Missing or invalid <b>id</b> in the URL.</div>";
+      } else {
+        const koyfinUrl = `https://app.koyfin.com/share/${id}/simple`;
+        document.getElementById("frame").src = koyfinUrl;
 
-        const safe = id.trim();
-        if (!/^[a-zA-Z0-9_-]+$/.test(safe)) {
-          document.body.innerHTML = "<p>Invalid chart id.</p>";
-          return;
-        }
+        const source = document.getElementById("source");
+        source.href = koyfinUrl;
 
-        const url = `https://app.koyfin.com/share/${safe}/simple`;
-
-        document.getElementById("frame").src = url;
-
-        const title = label ? `Koyfin: ${label}` : `Koyfin: ${safe}`;
-        document.title = title;
-        document.getElementById("title").textContent = label ? label : "Koyfin";
-
-        const subtitle = document.getElementById("subtitle");
-        subtitle.textContent = url;
-
-        const direct = document.getElementById("directLink");
-        direct.href = url;
-        direct.textContent = url;
-
-        document.getElementById("fallback").style.display = "block";
+        if (label) document.title = label;
       }
-
-      const id = getParam("id");
-      const label = getParam("label"); // optional
-      setChart(id, label);
     </script>
   </body>
 </html>
